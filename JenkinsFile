@@ -63,7 +63,8 @@ pipeline {
         stage('Run tests') {
             steps {
                 bat '''
-                    dotnet test --no-build --verbosity normal ^
+                    dotnet test SeleniumIde.sln --configuration Release ^
+                    --verbosity normal ^
                     --logger "trx;LogFileName=TestResults.trx" ^
                     --results-directory SeleniumIDE\\TestResults
                 '''
