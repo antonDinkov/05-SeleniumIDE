@@ -1,0 +1,96 @@
+pipeline {
+    agent any
+
+    environment {
+        DOTNET_VERSION = '8.0.100'          // .NET SDK version
+        CHROME_VERSION = '129.0.6668.58'    // Specific Chrome version
+        CHROMEDRIVER_VERSION = '129.0.6668.58' // Matching ChromeDriver version
+    }
+
+    stages {
+
+        stage('Checkout the code') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Set up .NET Core') {
+            steps {
+                sh '''
+                    echo "Installing .NET SDK ${DOTNET_VERSION}..."
+                    wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
+                    chmod +x dotnet-install.sh
+                    ./dotnet-install.sh --channel ${DOTNET_VERSION}
+                    export PATH=$HOME/.dotnet:$PATH
+                    dotnet --version
+                '''
+            }
+        }
+
+        stage('Uninstall current Chrome') {
+            steps {
+                sh '''
+                    echo "Removing any existing Google Chrome..."
+                    sudo apt-get remove -y google-chrome-stable || true
+                    sudo rm -f /usr/bin/google-chrome || true
+                '''
+            }
+        }
+
+        stage('Install specific version of Chrome') {
+            steps {
+                sh '''
+                    echo "Installing Google Chrome version ${CHROME_VERSION}..."
+                    wget https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}-1_amd64.deb -O /tmp/chrome.deb
+                    sudo apt install -y ./tmp/chrome.deb
+                    google-chrome --version
+                '''
+            }
+        }
+
+        stage('Download and install ChromeDriver') {
+            steps {
+                sh '''
+                    echo "Installing ChromeDriver version ${CHROMEDRIVER_VERSION}..."
+                    wget https://chromedriver.storage.googleapis.com/${CHROMEDRIVER_VERSION}/chromedriver_linux64.zip -O /tmp/chromedriver.zip
+                    unzip /tmp/chromedriver.zip -d /tmp/
+                    sudo mv /tmp/chromedriver /usr/local/bin/chromedriver
+                    sudo chmod +x /usr/local/bin/chromedriver
+                    chromedriver --version
+                '''
+            }
+        }
+
+        stage('Restore dependencies') {
+            steps {
+                sh '''
+                    dotnet restore
+                '''
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh '''
+                    dotnet build --configuration Release
+                '''
+            }
+        }
+
+        stage('Run tests') {
+            steps {
+                sh '''
+                    dotnet test --no-build --verbosity normal
+                '''
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Pipeline finished. Cleaning up workspace...'
+            cleanWs()
+        }
+    }
+}
