@@ -62,7 +62,11 @@ pipeline {
 
         stage('Run tests') {
             steps {
-                bat 'dotnet test --no-build --configuration Release --verbosity normal'
+                bat '''
+                    dotnet test --no-build --configuration Release --verbosity normal ^
+                        --logger "trx;LogFileName=TestResults.trx" ^
+                        --results-directory TestResults
+                '''
             }
         }
     }
