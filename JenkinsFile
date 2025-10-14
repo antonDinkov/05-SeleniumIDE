@@ -29,7 +29,7 @@ pipeline {
             steps {
                 bat '''
                     echo Uninstalling current Google Chrome
-                    choco uninstall googlechrome -y
+                    choco uninstall googlechrome -y || exit 0
                 '''
             }
         }
