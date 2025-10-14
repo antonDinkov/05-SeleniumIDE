@@ -74,8 +74,11 @@ pipeline {
 
     post {
         always {
+            echo "Archiving test results..."
+
             archiveArtifacts artifacts: 'SeleniumIDE/TestResults/*.trx', allowEmptyArchive: true
-            junit 'SeleniumIDE/TestResults/*.trx'
+
+            step([$class: 'MSTestPublisher', testResultsFile: 'SeleniumIDE/TestResults/*.trx', keepLongStdio: true])
         }
     }
 }
