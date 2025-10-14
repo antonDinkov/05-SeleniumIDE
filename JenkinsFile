@@ -25,15 +25,6 @@ pipeline {
             }
         }
 
-        stage('Uninstall current Chrome') {
-            steps {
-                bat '''
-                    echo Uninstalling current Google Chrome
-                    choco uninstall googlechrome -y || exit 0
-                '''
-            }
-        }
-
         stage('Install specific version of Chrome') {
             steps {
                 bat '''
