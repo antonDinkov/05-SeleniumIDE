@@ -63,10 +63,9 @@ pipeline {
         stage('Run tests') {
             steps {
                 bat '''
-                    echo Running .NET tests and generating TRX report
-                    dotnet test SeleniumIde.sln --configuration Release --verbosity normal ^
-                        --logger "trx;LogFileName=TestResults.trx" ^
-                        --results-directory TestResults
+                    dotnet test --no-build --verbosity normal ^
+                    --logger "trx;LogFileName=TestResults.trx" ^
+                    --results-directory SeleniumIDE\\TestResults
                 '''
             }
         }
@@ -74,9 +73,8 @@ pipeline {
 
     post {
         always {
-            echo "Archiving test results..."
-            archiveArtifacts artifacts: '**/TestResults/*.trx', allowEmptyArchive: true
-            junit '**/TestResults/*.trx'
+            archiveArtifacts artifacts: 'SeleniumIDE/TestResults/*.trx', allowEmptyArchive: true
+            junit 'SeleniumIDE/TestResults/*.trx'
         }
     }
 }
